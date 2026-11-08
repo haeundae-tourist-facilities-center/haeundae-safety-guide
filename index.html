@@ -59,6 +59,7 @@
       font-size: 14px;
       color: #576a7d;
       margin: 0 0 20px;
+      line-height: 1.6;
     }
 
     .langs {
@@ -141,6 +142,17 @@
 
     .viewer h2 { font-size: 19px; }
 
+    .error {
+      padding: 18px;
+      margin-bottom: 16px;
+      background: #fff3f3;
+      color: #b42318;
+      border: 1px solid #ffc9c9;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
     .foot {
       text-align: center;
       font-size: 12px;
@@ -162,7 +174,7 @@
 <body>
 
   <header class="top">
-    <small>Haeundae · Songjeong Beach Multilingual Safety guide</small>
+    <small>Haeundae · Songjeong Beach Multilingual Safety Guide</small>
     <h1>해운대 · 송정 해수욕장 다국어 안전수칙 안내</h1>
   </header>
 
@@ -175,8 +187,13 @@
       </p>
 
       <div class="langs">
+
         <button class="lang" data-lang="ko" lang="ko">
           한국어<span>Korean</span>
+        </button>
+
+        <button class="lang" data-lang="en" lang="en">
+          English<span>English</span>
         </button>
 
         <button class="lang" data-lang="zh" lang="zh">
@@ -198,6 +215,7 @@
         <button class="lang" data-lang="fr" lang="fr">
           Français<span>French</span>
         </button>
+
       </div>
 
       <p class="note">※ 시범 페이지입니다.</p>
@@ -213,7 +231,8 @@
       <h2 id="posterTitle"></h2>
 
       <p class="sub">
-        안내판을 보려면 아래로 스크롤해 주세요. 확대도 가능합니다.
+        안내판을 보려면 아래로 스크롤해 주세요.
+        이미지를 확대해서 볼 수도 있습니다.
       </p>
 
       <div class="posterbox" id="posterbox"></div>
@@ -227,14 +246,16 @@
 
     <p class="foot">
       해운대 · 송정해수욕장 다국어 안전수칙 안내 시범사이트<br>
-      Haeundae · Songjeong Beach Multilingual Safety guide
+      Haeundae · Songjeong Beach Multilingual Safety Guide
     </p>
 
   </main>
 
   <script>
+    // 지원 언어
     const names = {
       ko: '한국어',
+      en: 'English',
       zh: '中文',
       ja: '日本語',
       th: 'ภาษาไทย',
@@ -247,6 +268,8 @@
     const posterbox = document.getElementById('posterbox');
 
     function show(lang, write = true) {
+
+      // 지원하지 않는 언어면 선택 화면 표시
       if (!Object.prototype.hasOwnProperty.call(names, lang)) {
         selection.style.display = 'block';
         viewer.style.display = 'none';
@@ -254,7 +277,8 @@
 
         if (write) {
           history.replaceState(
-            null, '', location.pathname + location.search
+            null, '',
+            location.pathname + location.search
           );
         }
 
@@ -262,21 +286,37 @@
         return;
       }
 
+      // 선택한 언어의 안내판 표시
       selection.style.display = 'none';
       viewer.style.display = 'block';
       posterbox.replaceChildren();
 
-      // 한국어는 3장, 다른 언어는 1장씩 표시
-      const files = lang === 'ko'
-        ? ['ko_1.png', 'ko_2.png', 'ko_3.png']
-        : [lang + '.png'];
+      // 모든 언어에서 이미지 3장씩 표시
+      const files = [
+        lang + '_1.png',
+        lang + '_2.png',
+        lang + '_3.png'
+      ];
 
       files.forEach((file, index) => {
+
         const img = document.createElement('img');
+
         img.src = 'images/' + file;
         img.alt = names[lang] + ' 안내판 ' + (index + 1);
         img.className = 'poster';
         img.loading = index === 0 ? 'eager' : 'lazy';
+
+        // 이미지 파일이 없는 경우 오류 안내
+        img.onerror = function() {
+          const error = document.createElement('div');
+          error.className = 'error';
+          error.textContent =
+            '이미지를 불러올 수 없습니다: images/' + file;
+
+          img.replaceWith(error);
+        };
+
         posterbox.appendChild(img);
       });
 
@@ -292,19 +332,23 @@
       window.scrollTo(0, 0);
     }
 
+    // 언어 선택 버튼
     document.querySelectorAll('[data-lang]').forEach(button => {
       button.addEventListener('click', () => {
         show(button.dataset.lang);
       });
     });
 
+    // 언어 선택 화면으로 돌아가기
     document.getElementById('back').onclick = () => show(null);
     document.getElementById('change').onclick = () => show(null);
 
+    // URL 해시가 변경될 때 언어 변경
     window.addEventListener('hashchange', () => {
       show(location.hash.slice(1), false);
     });
 
+    // 최초 접속 시 언어 설정
     show(location.hash.slice(1), false);
   </script>
 
